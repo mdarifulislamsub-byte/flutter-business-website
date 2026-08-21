@@ -2124,413 +2124,294 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                                 index;
                           });
                         },
-                        itemBuilder: (context, experienceIndex) {
-                          final ExperienceData exp =
-                          experiencesList[
-                          experienceIndex];
+                            itemBuilder: (context, experienceIndex) {
+                              final ExperienceData exp =
+                              experiencesList[experienceIndex];
 
-                          return SingleChildScrollView(
-                            padding:
-                            const EdgeInsets.only(
-                              left: 5,
-                              right: 5,
-                              bottom: 16,
-                            ),
-                            child: Card(
-                              margin:
-                              const EdgeInsets.only(
-                                bottom: 8,
-                              ),
-                              elevation: 3,
-                              color: Colors.white,
-                              shape:
-                              RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(
-                                  14,
+                              return ScrollConfiguration(
+                                behavior: const MaterialScrollBehavior().copyWith(
+                                  dragDevices: {
+                                    PointerDeviceKind.touch,
+                                    PointerDeviceKind.mouse,
+                                    PointerDeviceKind.trackpad,
+                                  },
                                 ),
-                              ),
-                              child: Padding(
-                                padding:
-                                const EdgeInsets.all(
-                                  20,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-                                  children: [
-                                    Text(
-                                      exp.companyName
-                                          .trim()
-                                          .isNotEmpty
-                                          ? exp.companyName
-                                          .trim()
-                                          .toUpperCase()
-                                          : "COMPANY NAME",
-                                      style:
-                                      const TextStyle(
-                                        fontSize: 19,
-                                        fontWeight:
-                                        FontWeight
-                                            .bold,
-                                        color: Colors
-                                            .blueAccent,
-                                      ),
+                                child: SingleChildScrollView(
+                                  physics: const ClampingScrollPhysics(),
+                                  padding: const EdgeInsets.only(
+                                    left: 5,
+                                    right: 5,
+                                    bottom: 16,
+                                  ),
+                                  child: Card(
+                                    margin: const EdgeInsets.only(
+                                      bottom: 8,
                                     ),
-
-                                    const SizedBox(height: 8),
-
-                                    Text(
-                                      "Total Service: "
-                                          "${exp.date.trim().isNotEmpty ? exp.date : 'N/A'}",
-                                      style:
-                                      const TextStyle(
-                                        color:
-                                        Colors.grey,
-                                        fontWeight:
-                                        FontWeight
-                                            .w600,
-                                      ),
+                                    elevation: 3,
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
-
-                                    const SizedBox(height: 16),
-
-                                    if (exp.designations
-                                        .isNotEmpty) ...[
-                                      const Text(
-                                        "Career Progression",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight:
-                                          FontWeight
-                                              .bold,
-                                          color: Color(
-                                            0xFF000080,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            exp.companyName.trim().isNotEmpty
+                                                ? exp.companyName.trim().toUpperCase()
+                                                : "COMPANY NAME",
+                                            style: const TextStyle(
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blueAccent,
+                                            ),
                                           ),
-                                        ),
-                                      ),
 
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                          const SizedBox(height: 8),
 
-                                      ...List.generate(
-                                        exp.designations
-                                            .length,
-                                            (
-                                            designationIndex,
-                                            ) {
-                                          final designation =
-                                          exp.designations[
-                                          designationIndex];
-
-                                          final String
-                                          dateText = [
-                                            if (designation
-                                                .fromDate
-                                                .trim()
-                                                .isNotEmpty)
-                                              designation
-                                                  .fromDate
-                                                  .trim(),
-
-                                            if (designation
-                                                .toDate
-                                                .trim()
-                                                .isNotEmpty)
-                                              designation
-                                                  .toDate
-                                                  .trim(),
-                                          ].join(" — ");
-
-                                          return Container(
-                                            width:
-                                            double.infinity,
-                                            margin:
-                                            const EdgeInsets.only(
-                                              bottom:
-                                              10,
+                                          Text(
+                                            "Total Service: "
+                                                "${exp.date.trim().isNotEmpty ? exp.date : 'N/A'}",
+                                            style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontWeight: FontWeight.w600,
                                             ),
-                                            padding:
-                                            const EdgeInsets.all(
-                                              14,
-                                            ),
-                                            decoration:
-                                            BoxDecoration(
-                                              color:
-                                              const Color(
-                                                0xFFF7F8FF,
-                                              ),
-                                              borderRadius:
-                                              BorderRadius.circular(
-                                                12,
-                                              ),
-                                              border:
-                                              Border.all(
-                                                color: const Color(
-                                                  0xFF000080,
-                                                ).withOpacity(
-                                                  0.18,
-                                                ),
+                                          ),
+
+                                          const SizedBox(height: 16),
+
+                                          if (exp.designations.isNotEmpty) ...[
+                                            const Text(
+                                              "Career Progression",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF000080),
                                               ),
                                             ),
-                                            child: Row(
-                                              crossAxisAlignment:
-                                              CrossAxisAlignment
-                                                  .start,
-                                              children: [
-                                                CircleAvatar(
-                                                  radius:
-                                                  18,
-                                                  backgroundColor:
-                                                  const Color(
-                                                    0xFF000080,
+
+                                            const SizedBox(height: 10),
+
+                                            ...List.generate(
+                                              exp.designations.length,
+                                                  (designationIndex) {
+                                                final designation =
+                                                exp.designations[designationIndex];
+
+                                                final String dateText = [
+                                                  if (designation.fromDate.trim().isNotEmpty)
+                                                    designation.fromDate.trim(),
+                                                  if (designation.toDate.trim().isNotEmpty)
+                                                    designation.toDate.trim(),
+                                                ].join(" — ");
+
+                                                return Container(
+                                                  width: double.infinity,
+                                                  margin: const EdgeInsets.only(
+                                                    bottom: 10,
                                                   ),
-                                                  child:
-                                                  Text(
-                                                    "${designationIndex + 1}",
-                                                    style: const TextStyle(
-                                                      color:
-                                                      Colors.white,
-                                                      fontWeight:
-                                                      FontWeight.bold,
+                                                  padding: const EdgeInsets.all(14),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFF7F8FF),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    border: Border.all(
+                                                      color: const Color(0xFF000080)
+                                                          .withOpacity(0.18),
                                                     ),
                                                   ),
-                                                ),
-
-                                                const SizedBox(
-                                                  width:
-                                                  12,
-                                                ),
-
-                                                Expanded(
-                                                  child:
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                  child: Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      Text(
-                                                        designation.title.trim().isNotEmpty
-                                                            ? designation.title
-                                                            : "Designation not provided",
-                                                        style: const TextStyle(
-                                                          fontSize:
-                                                          15,
-                                                          fontWeight:
-                                                          FontWeight.bold,
+                                                      CircleAvatar(
+                                                        radius: 18,
+                                                        backgroundColor:
+                                                        const Color(0xFF000080),
+                                                        child: Text(
+                                                          "${designationIndex + 1}",
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
                                                         ),
                                                       ),
 
-                                                      if (dateText
-                                                          .isNotEmpty) ...[
-                                                        const SizedBox(
-                                                          height:
-                                                          5,
-                                                        ),
-                                                        Text(
-                                                          dateText,
-                                                          style: const TextStyle(
-                                                            color:
-                                                            Colors.black54,
-                                                          ),
-                                                        ),
-                                                      ],
+                                                      const SizedBox(width: 12),
 
-                                                      if (designation
-                                                          .serviceLength
-                                                          .trim()
-                                                          .isNotEmpty) ...[
-                                                        const SizedBox(
-                                                          height:
-                                                          5,
-                                                        ),
-                                                        Text(
-                                                          "Service Length: "
-                                                              "${designation.serviceLength}",
-                                                          style: const TextStyle(
-                                                            color: Color(
-                                                              0xFF000080,
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text(
+                                                              designation.title.trim().isNotEmpty
+                                                                  ? designation.title
+                                                                  : "Designation not provided",
+                                                              style: const TextStyle(
+                                                                fontSize: 15,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
                                                             ),
-                                                            fontWeight:
-                                                            FontWeight.w600,
-                                                          ),
+
+                                                            if (dateText.isNotEmpty) ...[
+                                                              const SizedBox(height: 5),
+                                                              Text(
+                                                                dateText,
+                                                                style: const TextStyle(
+                                                                  color: Colors.black54,
+                                                                ),
+                                                              ),
+                                                            ],
+
+                                                            if (designation.serviceLength
+                                                                .trim()
+                                                                .isNotEmpty) ...[
+                                                              const SizedBox(height: 5),
+                                                              Text(
+                                                                "Service Length: "
+                                                                    "${designation.serviceLength}",
+                                                                style: const TextStyle(
+                                                                  color: Color(0xFF000080),
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
                                                         ),
-                                                      ],
+                                                      ),
                                                     ],
                                                   ),
-                                                ),
-                                              ],
+                                                );
+                                              },
                                             ),
-                                          );
-                                        },
-                                      ),
-                                    ] else ...[
-                                      Text(
-                                        "Designation: "
-                                            "${exp.designation.trim().isNotEmpty ? exp.designation : 'N/A'}",
-                                        style:
-                                        const TextStyle(
-                                          fontWeight:
-                                          FontWeight
-                                              .w600,
-                                        ),
-                                      ),
-                                    ],
-
-                                    const SizedBox(height: 14),
-
-                                    const Text(
-                                      "Description:",
-                                      style: TextStyle(
-                                        fontWeight:
-                                        FontWeight.bold,
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 5),
-
-                                    Text(
-                                      exp.description
-                                          .trim()
-                                          .isNotEmpty
-                                          ? exp.description
-                                          : "No description provided.",
-                                      style:
-                                      const TextStyle(
-                                        height: 1.45,
-                                      ),
-                                    ),
-
-                                    if (exp.certificates
-                                        .isNotEmpty) ...[
-                                      const SizedBox(
-                                        height: 18,
-                                      ),
-
-                                      const Text(
-                                        "Attached Certificates "
-                                            "(Click to view):",
-                                        style: TextStyle(
-                                          fontWeight:
-                                          FontWeight.bold,
-                                          fontSize: 13,
-                                          color:
-                                          Colors.black87,
-                                        ),
-                                      ),
-
-                                      const SizedBox(
-                                        height: 9,
-                                      ),
-
-                                      SizedBox(
-                                        height: 86,
-                                        child:
-                                        ListView.builder(
-                                          scrollDirection:
-                                          Axis.horizontal,
-                                          itemCount: exp
-                                              .certificates
-                                              .length,
-                                          itemBuilder:
-                                              (
-                                              context,
-                                              certificateIndex,
-                                              ) {
-                                            final certificate =
-                                            exp.certificates[
-                                            certificateIndex];
-
-                                            return Padding(
-                                              padding:
-                                              const EdgeInsets.only(
-                                                right:
-                                                12,
+                                          ] else ...[
+                                            Text(
+                                              "Designation: "
+                                                  "${exp.designation.trim().isNotEmpty ? exp.designation : 'N/A'}",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
                                               ),
-                                              child: InkWell(
-                                                borderRadius:
-                                                BorderRadius.circular(
-                                                  10,
-                                                ),
-                                                onTap:
-                                                    () {
-                                                  _showCertificateGalleryDialog(
-                                                    dialogContext,
-                                                    exp.certificates,
+                                            ),
+                                          ],
+
+                                          const SizedBox(height: 14),
+
+                                          const Text(
+                                            "Description:",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 5),
+
+                                          Text(
+                                            exp.description.trim().isNotEmpty
+                                                ? exp.description
+                                                : "No description provided.",
+                                            style: const TextStyle(
+                                              height: 1.45,
+                                            ),
+                                          ),
+
+                                          if (exp.certificates.isNotEmpty) ...[
+                                            const SizedBox(height: 18),
+
+                                            const Text(
+                                              "Attached Certificates (Click to view):",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+
+                                            const SizedBox(height: 9),
+
+                                            SizedBox(
+                                              height: 86,
+                                              child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                itemCount: exp.certificates.length,
+                                                itemBuilder: (
+                                                    context,
                                                     certificateIndex,
+                                                    ) {
+                                                  final certificate =
+                                                  exp.certificates[certificateIndex];
+
+                                                  return Padding(
+                                                    padding: const EdgeInsets.only(
+                                                      right: 12,
+                                                    ),
+                                                    child: InkWell(
+                                                      borderRadius:
+                                                      BorderRadius.circular(10),
+                                                      onTap: () {
+                                                        _showCertificateGalleryDialog(
+                                                          dialogContext,
+                                                          exp.certificates,
+                                                          certificateIndex,
+                                                        );
+                                                      },
+                                                      child: Tooltip(
+                                                        message: certificate.name,
+                                                        child: Container(
+                                                          width: 86,
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            border: Border.all(
+                                                              color: Colors.grey.shade300,
+                                                            ),
+                                                            borderRadius:
+                                                            BorderRadius.circular(10),
+                                                          ),
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                            BorderRadius.circular(9),
+                                                            child: certificate.bytes != null
+                                                                ? Image.memory(
+                                                              certificate.bytes!,
+                                                              fit: BoxFit.cover,
+                                                            )
+                                                                : certificate.imageUrl != null &&
+                                                                certificate
+                                                                    .imageUrl!.isNotEmpty
+                                                                ? Image.network(
+                                                              certificate.imageUrl!,
+                                                              fit: BoxFit.cover,
+                                                              errorBuilder: (
+                                                                  context,
+                                                                  error,
+                                                                  stackTrace,
+                                                                  ) {
+                                                                return const Icon(
+                                                                  Icons
+                                                                      .broken_image_outlined,
+                                                                  color: Colors.grey,
+                                                                );
+                                                              },
+                                                            )
+                                                                : const Icon(
+                                                              Icons.image_outlined,
+                                                              color: Colors.grey,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
                                                   );
                                                 },
-                                                child: Tooltip(
-                                                  message:
-                                                  certificate.name,
-                                                  child: Container(
-                                                    width:
-                                                    86,
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                      Colors.white,
-                                                      border: Border.all(
-                                                        color:
-                                                        Colors.grey.shade300,
-                                                      ),
-                                                      borderRadius:
-                                                      BorderRadius.circular(
-                                                        10,
-                                                      ),
-                                                    ),
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                      BorderRadius.circular(
-                                                        9,
-                                                      ),
-                                                      child:
-                                                      certificate.bytes !=
-                                                          null
-                                                          ? Image.memory(
-                                                        certificate.bytes!,
-                                                        fit:
-                                                        BoxFit.cover,
-                                                      )
-                                                          : certificate.imageUrl != null &&
-                                                          certificate.imageUrl!.isNotEmpty
-                                                          ? Image.network(
-                                                        certificate.imageUrl!,
-                                                        fit:
-                                                        BoxFit.cover,
-                                                        errorBuilder:
-                                                            (
-                                                            context,
-                                                            error,
-                                                            stackTrace,
-                                                            ) {
-                                                          return const Icon(
-                                                            Icons.broken_image_outlined,
-                                                            color:
-                                                            Colors.grey,
-                                                          );
-                                                        },
-                                                      )
-                                                          : const Icon(
-                                                        Icons.image_outlined,
-                                                        color:
-                                                        Colors.grey,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
                                               ),
-                                            );
-                                          },
-                                        ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                    ],
-                                  ],
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          );
-                        },
+                              );
+                            },
                       ),
                     ),
                     ),
