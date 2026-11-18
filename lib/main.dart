@@ -3,32 +3,71 @@ import 'dart:async';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'web_helper_stub.dart' if (dart.library.html) 'dart:html' as html;
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'pdf_viewer_page.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:universal_html/html.dart' as web;
 import 'package:flutter/gestures.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+// --- Cloudinary Universal Upload Function ---
+Future<String> uploadToCloudinary(
+    Uint8List fileBytes,
+    String fileName, {
+      String folder = "portfolio",
+    }) async {
+  const String cloudName = "c9thhaqw";
+  const String uploadPreset = "portfolio_unsigned";
+
+  final uri = Uri.parse(
+    "https://api.cloudinary.com/v1_1/$cloudName/auto/upload",
+  );
+  final request = http.MultipartRequest("POST", uri)
+    ..fields['upload_preset'] = uploadPreset
+    ..fields['folder'] = folder
+    ..files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        fileBytes,
+        filename: fileName,
+      ),
+    );
+
+  try {
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      final resStr = await response.stream.bytesToString();
+      final data = jsonDecode(resStr);
+      return data['secure_url'] ?? "";
+    } else {
+      debugPrint("Cloudinary Upload Error: ${response.statusCode}");
+      return "";
+    }
+  } catch (e) {
+    debugPrint("Cloudinary Exception: $e");
+    return "";
+  }
+}
 
 void updateBrowserFavicon(String imageUrl) {
   if (!kIsWeb || imageUrl.isEmpty) return;
-  final String separator =
-  imageUrl.contains('?') ? '&' : '?';
+  final String separator = imageUrl.contains('?') ? '&' : '?';
   final String iconUrl =
       '$imageUrl${separator}v=${DateTime.now().millisecondsSinceEpoch}';
-  final favicon =
-  web.document.getElementById('appFavicon');
+  final favicon = web.document.getElementById('appFavicon');
   if (favicon != null) {
     favicon.setAttribute('href', iconUrl);
   }
 }
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -44,6 +83,7 @@ void main() async {
     home: const PortfolioScreen(),
   ));
 }
+
 class CertificateData {
   String name;
   Uint8List? bytes;
@@ -68,11 +108,8 @@ class DesignationData {
 class ExperienceData {
   String companyName;
   String date;
-
   String designation;
-
   List<DesignationData> designations;
-
   String description;
   List<CertificateData> certificates;
 
@@ -110,8 +147,9 @@ class ExpertiseSectionData {
   ExpertiseSectionData({
     this.sectionTitle = '',
     List<ExpertiseItemData>? items,
-  }) : this.items = items ?? [];
+  }) : items = items ?? [];
 }
+
 class ProjectData {
   String projectName;
   String title;
@@ -250,16 +288,58 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     }
   }
 
-  Future<String?> uploadResumeToStorage(Uint8List pdfBytes, String fileName) async {
-    try {                                    
-      Reference ref = FirebaseStorage.instance
-          .ref()
-          .child('resumes/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-      UploadTask uploadTask = ref.putData(pdfBytes);
-      TaskSnapshot taskSnapshot = await uploadTask;
-      return await taskSnapshot.ref.getDownloadURL();
+  // --- Cloudinary Universal Upload Function ---
+  Future<String> uploadToCloudinary(
+      Uint8List fileBytes,
+      String fileName, {
+        String folder = "portfolio",
+      }) async {
+    const String cloudName = "c9thhaqw";
+    const String uploadPreset = "portfolio_unsigned";
+
+    final uri = Uri.parse(
+      "https://api.cloudinary.com/v1_1/$cloudName/auto/upload",
+    );
+    final request = http.MultipartRequest("POST", uri)
+      ..fields['upload_preset'] = uploadPreset
+      ..fields['folder'] = folder
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+        ),
+      );
+
+    try {
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final resStr = await response.stream.bytesToString();
+        final data = jsonDecode(resStr);
+        return data['secure_url'] ?? "";
+      } else {
+        debugPrint("Cloudinary Upload Error: ${response.statusCode}");
+        return "";
+      }
     } catch (e) {
-      print("PDF Upload error: $e");
+      debugPrint("Cloudinary Exception: $e");
+      return "";
+    }
+  }
+
+  Future<String?> uploadResumeToStorage(
+      Uint8List pdfBytes,
+      String fileName,
+      ) async {
+    try {
+      final url = await uploadToCloudinary(
+        pdfBytes,
+        fileName,
+        folder: "portfolio/resumes",
+      );
+      return url.isNotEmpty ? url : null;
+    } catch (e) {
+      debugPrint("PDF Upload error: $e");
       return null;
     }
   }
@@ -3141,16 +3221,18 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(20),
-                          image: dashboardImageUrl != null
+                          image: (dashboardImageUrl != null &&
+                              dashboardImageUrl!.trim().isNotEmpty)
                               ? DecorationImage(
                             image: NetworkImage(
-                              "$dashboardImageUrl&t=${DateTime.now().millisecondsSinceEpoch}",
+                              dashboardImageUrl!.trim(),
                             ),
                             fit: BoxFit.cover,
                           )
                               : null,
                         ),
-                        child: dashboardImageUrl == null
+                        child: (dashboardImageUrl == null ||
+                            dashboardImageUrl!.trim().isEmpty)
                             ? const Center(
                           child: Icon(
                             Icons.image,
@@ -3758,19 +3840,23 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF000080)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF000080),
+                    ),
                     onPressed: () {
                       Navigator.pop(context);
                       if (resumePdfUrl != null && resumePdfUrl!.isNotEmpty) {
-                        final googleViewerUrl = 'https://docs.google.com/viewer?url=${Uri.encodeComponent(resumePdfUrl!)}';
-                        html.window.open(googleViewerUrl, '_blank');
+                        html.window.open(resumePdfUrl!, '_blank');
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Link not found!")),
                         );
                       }
                     },
-                    child: const Text("View CV", style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      "View CV",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -3876,7 +3962,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     if (phoneNumber.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("WhatsApp number Can't Fineding!"),
+                          content: Text("WhatsApp number not found!"),
                         ),
                       );
                       return;
@@ -3885,8 +3971,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     final String cleanNumber =
                     phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
 
-                    final Uri whatsappUrl = Uri.parse(
-                      "whatsapp://send?phone=$cleanNumber",
+                    final bool isMobile =
+                        defaultTargetPlatform == TargetPlatform.android ||
+                            defaultTargetPlatform == TargetPlatform.iOS;
+
+                    final Uri whatsappUrl = isMobile
+                        ? Uri.parse("https://wa.me/$cleanNumber")
+                        : Uri.parse(
+                      "https://web.whatsapp.com/send?phone=$cleanNumber",
                     );
 
                     final bool opened = await launchUrl(
@@ -3897,9 +3989,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     if (!opened && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            "WhatsApp app install cnn't open!",
-                          ),
+                          content: Text("Could not open WhatsApp!"),
                         ),
                       );
                     }
@@ -4517,29 +4607,15 @@ class PersonalDetailsPage extends StatelessWidget {
       final String extension =
           selectedFile.extension?.toLowerCase() ?? 'png';
 
-      final String contentType =
-      extension == 'png'
-          ? 'image/png'
-          : 'image/jpeg';
-
-      final Reference faviconReference =
-      FirebaseStorage.instance
-          .ref()
-          .child('website/favicon');
-
-      final UploadTask uploadTask =
-      faviconReference.putData(
+      final String faviconUrl = await uploadToCloudinary(
         imageBytes,
-        SettableMetadata(
-          contentType: contentType,
-        ),
+        "favicon_${DateTime.now().millisecondsSinceEpoch}.$extension",
+        folder: "portfolio/favicon",
       );
 
-      final TaskSnapshot snapshot =
-      await uploadTask;
-
-      final String faviconUrl =
-      await snapshot.ref.getDownloadURL();
+      if (faviconUrl.isEmpty) {
+        throw Exception("Cloudinary upload failed!");
+      }
 
       await FirebaseFirestore.instance
           .collection('my_portfolio')
@@ -5110,9 +5186,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
         : '';
   }
   Future<void> _saveAllDataToFirestore() async {
-    final storage = FirebaseStorage.instance;
-    print("Storage is ready: $storage");
-
     try {
       _saveCurrentState();
 
@@ -5139,7 +5212,6 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
 
             'certificates': await Future.wait(
               e.certificates.map((c) async {
-
                 String? imageUrl = c.imageUrl;
                 if (c.bytes != null) {
                   imageUrl = await uploadFileToStorage(
@@ -5165,10 +5237,9 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
         'experiences': expData,
       }, SetOptions(merge: true));
 
-      print("Experience saved successfully.");
-
+      debugPrint("Experience saved successfully.");
     } catch (e) {
-      print("Experience save error: $e");
+      debugPrint("Experience save error: $e");
     }
   }
 
@@ -5720,19 +5791,26 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        _buildBlueprintButton("Save Data", () {
-          _saveCurrentState();
-          widget.onSave(_tempExperiences);
-          _saveAllDataToFirestore();
-
+        _buildBlueprintButton("Save Data", () async {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Experience data saved successfully!'),
-              backgroundColor: Colors.green,
+              content: Text('Uploading & saving experience data...'),
+              duration: Duration(seconds: 2),
             ),
           );
 
-          Navigator.pop(context);
+          await _saveAllDataToFirestore();
+          widget.onSave(_tempExperiences);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Experience data saved successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context);
+          }
         }),
 
         const SizedBox(height: 10),
@@ -5875,20 +5953,23 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
 
       final projectData = await Future.wait(
         _tempProjects.map((p) async {
-          List<String> mediaUrls = List<String>.from(p.mediaUrls);
+          List<String> updatedUrls = List<String>.from(p.mediaUrls);
 
           for (var img in p.mediaFiles) {
-            String? url = await uploadFileToStorage(
+            String url = await uploadFileToStorage(
               img,
               "project_${DateTime.now().millisecondsSinceEpoch}.png",
             );
-            print("URL = $url");
-            if (url != null) {
-              mediaUrls.add(url);
+            debugPrint("URL = $url");
+            if (url.isNotEmpty) {
+              updatedUrls.add(url);
             }
           }
-          print("Project images: ${p.mediaFiles.length}");
-          print("Uploaded URLs: $mediaUrls");
+
+          p.mediaUrls = updatedUrls;
+          p.mediaFiles.clear();
+
+          debugPrint("Uploaded URLs: $updatedUrls");
 
           return {
             'projectName': p.projectName,
@@ -5897,7 +5978,8 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
             'keyFeatures': p.keyFeatures,
             'githubUrl': p.githubUrl,
             'codeSnippet': p.codeSnippet,
-            'mediaFiles': mediaUrls,
+            'stackDescription': p.stackDescription,
+            'mediaFiles': updatedUrls,
           };
         }).toList(),
       );
@@ -5909,9 +5991,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
         'projects': projectData,
       }, SetOptions(merge: true));
 
-      print("Projects saved successfully.");
+      debugPrint("Projects saved successfully.");
     } catch (e) {
-      print("Project save error: $e");
+      debugPrint("Project save error: $e");
     }
   }
   Future<void> _pickLiveDemoMedia() async {
@@ -6119,7 +6201,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                             padding: const EdgeInsets.only(right: 10),
                             child: Stack(
                               children: [
-
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
@@ -6127,9 +6208,20 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                                     width: 100,
                                     height: 100,
                                     fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 100,
+                                        height: 100,
+                                        color: Colors.grey.shade200,
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          color: Colors.red,
+                                          size: 40,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-
                                 Positioned(
                                   top: 2,
                                   right: 2,
@@ -6164,7 +6256,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                             .asMap()
                             .entries
                             .map((entry) {
-
                           final index = entry.key;
                           final image = entry.value;
 
@@ -6172,7 +6263,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                             padding: const EdgeInsets.only(right: 10),
                             child: Stack(
                               children: [
-
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.memory(
@@ -6182,7 +6272,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                                     fit: BoxFit.cover,
                                   ),
                                 ),
-
                                 Positioned(
                                   top: 2,
                                   right: 2,
@@ -6221,19 +6310,25 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     _buildBlueprintButton("Save Setup", () async {
-                      _saveCurrentState();
-                      widget.onSave(_tempProjects);
-
-                      await _saveProjectsToFirestore();
-
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Project structure configuration updated!'),
-                          backgroundColor: Colors.green,
+                          content: Text('Uploading images & saving project...'),
+                          duration: Duration(seconds: 2),
                         ),
                       );
 
-                      Navigator.pop(context);
+                      await _saveProjectsToFirestore();
+                      widget.onSave(_tempProjects);
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Project structure configuration updated!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        Navigator.pop(context);
+                      }
                     }),
 
                     const SizedBox(width: 15),
@@ -6383,14 +6478,13 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
 
 Future<String> uploadFileToStorage(Uint8List fileBytes, String fileName) async {
   try {
-    Reference ref = FirebaseStorage.instance
-        .ref()
-        .child('certificates/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-    UploadTask uploadTask = ref.putData(fileBytes);
-    TaskSnapshot taskSnapshot = await uploadTask;
-    return await taskSnapshot.ref.getDownloadURL();
+    return await uploadToCloudinary(
+      fileBytes,
+      fileName,
+      folder: "portfolio/certificates",
+    );
   } catch (e) {
-    print("Upload error: $e");
+    debugPrint("Upload error: $e");
     return "";
   }
 }
@@ -6472,28 +6566,27 @@ void _showFullNetworkImageDialog(
 }
 Future<String> uploadDashboardImage(Uint8List imageBytes) async {
   try {
-    Reference ref = FirebaseStorage.instance
-        .ref()
-        .child('dashboard/dashboard_image.jpg');
-    UploadTask uploadTask = ref.putData(imageBytes);
-    TaskSnapshot snapshot = await uploadTask;
-    return await snapshot.ref.getDownloadURL();
+    return await uploadToCloudinary(
+      imageBytes,
+      "dashboard_${DateTime.now().millisecondsSinceEpoch}.jpg",
+      folder: "portfolio/dashboard",
+    );
   } catch (e) {
-    print("Dashboard Upload Error: $e");
+    debugPrint("Dashboard Upload Error: $e");
     return "";
   }
 }
 
 Future<String?> uploadResumeToStorage(Uint8List pdfBytes, String fileName) async {
   try {
-    Reference ref = FirebaseStorage.instance
-        .ref()
-        .child('resumes/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-    UploadTask uploadTask = ref.putData(pdfBytes);
-    TaskSnapshot taskSnapshot = await uploadTask;
-    return await taskSnapshot.ref.getDownloadURL();
+    final url = await uploadToCloudinary(
+      pdfBytes,
+      fileName,
+      folder: "portfolio/resumes",
+    );
+    return url.isNotEmpty ? url : null;
   } catch (e) {
-    print("PDF Upload error: $e");
+    debugPrint("PDF Upload error: $e");
     return null;
   }
 }
@@ -6684,12 +6777,14 @@ class _ExpertiseFormPageState extends State<ExpertiseFormPage> {
 
   Future<String?> uploadFileToStorage(Uint8List bytes, String fileName) async {
     try {
-      final ref = FirebaseStorage.instance.ref().child('expertise_icons/$fileName');
-      final uploadTask = await ref.putData(bytes);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-      return downloadUrl;
+      final url = await uploadToCloudinary(
+        bytes,
+        fileName,
+        folder: "portfolio/expertise_icons",
+      );
+      return url.isNotEmpty ? url : null;
     } catch (e) {
-      print("Error uploading image: $e");
+      debugPrint("Error uploading image: $e");
       return null;
     }
   }
