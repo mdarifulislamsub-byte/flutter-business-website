@@ -3064,7 +3064,13 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     ),
                     onPressed: () {
                       if (e == homeMenuTitle) {
-                        _homeViewController.value = Matrix4.identity();
+                        // Home বাটনে ক্লিক করলে নতুন পেজ ওপেন হবে
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeNewPage(), // আপনার নতুন পেজের নাম
+                          ),
+                        );
                         return;
                       }
                       if (e == resumeMenuTitle) {
@@ -4054,6 +4060,1461 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+//=====================
+//   MAIN PAGE
+//=====================
+class HomeNewPage extends StatefulWidget {
+  const HomeNewPage({super.key});
+
+  @override
+  State<HomeNewPage> createState() => _HomeNewPageState();
+}
+
+class _HomeNewPageState extends State<HomeNewPage> {
+  String? _activeMegaMenu;
+  Timer? _menuCloseTimer;
+
+  void _openMegaMenu(String menuName) {
+    _menuCloseTimer?.cancel();
+    if (_activeMegaMenu != menuName) {
+      setState(() {
+        _activeMegaMenu = menuName;
+      });
+    }
+  }
+
+  void _scheduleCloseMegaMenu() {
+    _menuCloseTimer?.cancel();
+    _menuCloseTimer = Timer(const Duration(milliseconds: 180), () {
+      if (!mounted) return;
+      setState(() {
+        _activeMegaMenu = null;
+      });
+    });
+  }
+
+  void _cancelCloseMegaMenu() {
+    _menuCloseTimer?.cancel();
+  }
+
+  void _toggleMegaMenu(String title) {
+    setState(() {
+      _activeMegaMenu = (_activeMegaMenu == title) ? null : title;
+    });
+  }
+
+  @override
+  void dispose() {
+    _menuCloseTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth < 800;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(95),
+        child: HomeTopMenuBar(
+          isMobile: isMobile,
+          activeMegaMenu: _activeMegaMenu,
+          onBack: () => Navigator.pop(context),
+          onHomeTap: () {
+            setState(() => _activeMegaMenu = null);
+            Navigator.pop(context);
+          },
+          onMenuHoverEnter: _openMegaMenu,
+          onMenuHoverExit: _scheduleCloseMegaMenu,
+          onMenuToggle: _toggleMegaMenu,
+        ),
+      ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                HomeWelcomeSection(
+                  onBackToPortfolio: () => Navigator.pop(context),
+                ),
+                HomeDarkFooterSection(isMobile: isMobile),
+              ],
+            ),
+          ),
+          if (_activeMegaMenu != null && !isMobile)
+            HomeMegaMenuOverlay(
+              screenWidth: screenWidth,
+              activeMenu: _activeMegaMenu!,
+              onMouseEnter: _cancelCloseMegaMenu,
+              onMouseExit: _scheduleCloseMegaMenu,
+              onCloseMenu: () => setState(() => _activeMegaMenu = null),
+            ),
+          LiveChatModule(
+            screenWidth: screenWidth,
+            isMobile: isMobile,
+          ),
+        ],
+      ),
+    );
+  }
+}
+class HomeTopMenuBar extends StatelessWidget {
+  final bool isMobile;
+  final String? activeMegaMenu;
+  final VoidCallback onBack;
+  final VoidCallback onHomeTap;
+  final ValueChanged<String> onMenuHoverEnter;
+  final VoidCallback onMenuHoverExit;
+  final ValueChanged<String> onMenuToggle;
+
+  const HomeTopMenuBar({
+    super.key,
+    required this.isMobile,
+    required this.activeMegaMenu,
+    required this.onBack,
+    required this.onHomeTap,
+    required this.onMenuHoverEnter,
+    required this.onMenuHoverExit,
+    required this.onMenuToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF000080),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 20 : 60,
+        vertical: 22,
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            IconButton(
+              tooltip: "Back to Portfolio",
+              onPressed: onBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              "ARIFUL'S PORTFOLIO",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const Spacer(),
+            if (!isMobile) ...[
+              _topMenuButton("Home", onHomeTap),
+              _hoverMenuButton("Products"),
+              _hoverMenuButton("Solutions"),
+              _hoverMenuButton("Resources"),
+            ] else
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.menu, color: Colors.white, size: 30),
+                onSelected: (String value) {
+                  if (value == "Home") onHomeTap();
+                },
+                itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(value: "Home", child: Text("Home")),
+                  PopupMenuItem<String>(value: "Products", child: Text("Products")),
+                  PopupMenuItem<String>(value: "Solutions", child: Text("Solutions")),
+                  PopupMenuItem<String>(value: "Resources", child: Text("Resources")),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _topMenuButton(String title, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        ),
+        child: Text(
+          title,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  Widget _hoverMenuButton(String title) {
+    final bool isActive = activeMegaMenu == title;
+    return MouseRegion(
+      onEnter: (_) => onMenuHoverEnter(title),
+      onExit: (_) => onMenuHoverExit(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: TextButton(
+          onPressed: () => onMenuToggle(title),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                isActive ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                color: Colors.white,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class HomeMegaMenuOverlay extends StatelessWidget {
+  final double screenWidth;
+  final String activeMenu;
+  final VoidCallback onMouseEnter;
+  final VoidCallback onMouseExit;
+  final VoidCallback onCloseMenu;
+
+  const HomeMegaMenuOverlay({
+    super.key,
+    required this.screenWidth,
+    required this.activeMenu,
+    required this.onMouseEnter,
+    required this.onMouseExit,
+    required this.onCloseMenu,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 8,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: MouseRegion(
+          onEnter: (_) => onMouseEnter(),
+          onExit: (_) => onMouseExit(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: screenWidth > 1180 ? 1100 : screenWidth * 0.94,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A0A0A),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.shade800),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.45),
+                  blurRadius: 30,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: activeMenu == "Products"
+                ? ProductsMegaMenuContent(onItemTap: onCloseMenu)
+                : activeMenu == "Solutions"
+                ? SolutionsMegaMenuContent(onItemTap: onCloseMenu)
+                : ResourcesMegaMenuContent(onItemTap: onCloseMenu),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 3A. PRODUCTS POPUP CLASS
+class ProductsMegaMenuContent extends StatelessWidget {
+  final VoidCallback onItemTap;
+
+  const ProductsMegaMenuContent({super.key, required this.onItemTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("WEBSITE"),
+              MegaMenuLink("Websites", onTap: onItemTap),
+              MegaMenuLink("Website Templates", onTap: onItemTap),
+              MegaMenuLink("AI Website Builder", onTap: onItemTap),
+              MegaMenuLink("Design Intelligence", onTap: onItemTap),
+              MegaMenuLink("Ecommerce", onTap: onItemTap),
+              MegaMenuLink("Portfolios", onTap: onItemTap),
+              MegaMenuLink("Blogs", onTap: onItemTap),
+              MegaMenuLink("Analytics", onTap: onItemTap),
+              const SizedBox(height: 18),
+              InkWell(
+                onTap: onItemTap,
+                child: const Text(
+                  "View All Features",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("BUSINESS"),
+              MegaMenuLink("Services", onTap: onItemTap),
+              MegaMenuLink("Online Stores", onTap: onItemTap),
+              MegaMenuLink("Invoicing", onTap: onItemTap),
+              MegaMenuLink("Scheduling", onTap: onItemTap),
+              MegaMenuLink("Limited Releases", onTap: onItemTap),
+              MegaMenuLink("Content & Memberships", onTap: onItemTap),
+              MegaMenuLink("Donations", onTap: onItemTap),
+              MegaMenuLink("Financial Solutions", onTap: onItemTap),
+            ],
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("MARKETING"),
+              MegaMenuLink("Marketing Tools", onTap: onItemTap),
+              MegaMenuLink("Email Campaigns", onTap: onItemTap),
+              MegaMenuLink("SMS Campaigns", onTap: onItemTap),
+              MegaMenuLink("SEO Tools", onTap: onItemTap),
+              MegaMenuLink("AI Visibility", onTap: onItemTap),
+              MegaMenuLink("Free Tools", onTap: onItemTap),
+              const SizedBox(height: 20),
+              const MegaMenuHeading("BUSINESS TOOLS"),
+              MegaMenuLink("Domain Search", onTap: onItemTap),
+              MegaMenuLink("Domain Transfer", onTap: onItemTap),
+              MegaMenuLink("Business Email", onTap: onItemTap),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MegaMenuCard(
+                title: "Build with AI",
+                subtitle: "Create a personalized website with ease",
+                icon: Icons.auto_awesome,
+                onTap: onItemTap,
+              ),
+              const SizedBox(height: 14),
+              MegaMenuCard(
+                title: "Portfolio for Pros",
+                subtitle: "Powerful enough for pros, easy enough for clients",
+                icon: Icons.workspace_premium_outlined,
+                onTap: onItemTap,
+              ),
+              const SizedBox(height: 14),
+              MegaMenuCard(
+                title: "Developer Circle",
+                subtitle: "Our partner program for freelancers and agencies",
+                icon: Icons.groups_outlined,
+                onTap: onItemTap,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// 3B. SOLUTIONS POPUP CLASS
+class SolutionsMegaMenuContent extends StatefulWidget {
+  final VoidCallback onItemTap;
+
+  const SolutionsMegaMenuContent({super.key, required this.onItemTap});
+
+  @override
+  State<SolutionsMegaMenuContent> createState() => _SolutionsMegaMenuContentState();
+}
+
+class _SolutionsMegaMenuContentState extends State<SolutionsMegaMenuContent> {
+  String _selectedCategory = "Sports & Fitness";
+
+  static const _categories = [
+    "Creative Services",
+    "Professional Services",
+    "Education & Training",
+    "Beauty",
+    "Sports & Fitness",
+    "Health & Wellness",
+    "Home Services",
+    "Events & Experiences",
+    "Charities & Nonprofits",
+    "Personal",
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("SOLUTIONS FOR"),
+              ..._categories.map((String cat) {
+                final bool selected = _selectedCategory == cat;
+                return MouseRegion(
+                  onEnter: (_) => setState(() => _selectedCategory = cat),
+                  child: InkWell(
+                    onTap: widget.onItemTap,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        cat,
+                        style: TextStyle(
+                          color: selected ? Colors.white : Colors.grey.shade400,
+                          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        Container(
+          width: 1,
+          height: 310,
+          color: Colors.grey.shade800,
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+        ),
+        Expanded(
+          flex: 5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("EXPLORE"),
+              Row(
+                children: [
+                  Text(
+                    _selectedCategory,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Keep your workflow streamlined and your clients engaged, all on a single platform to grow your business.",
+                style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 22),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _solutionTag("Custom Apps"),
+                  _solutionTag("Client Portals"),
+                  _solutionTag("Booking System"),
+                  _solutionTag("Admin Dashboard"),
+                  _solutionTag("Cloud Hosting"),
+                  _solutionTag("Automation"),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _solutionTag(String label) {
+    return InkWell(
+      onTap: widget.onItemTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade700),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 12.5),
+        ),
+      ),
+    );
+  }
+}
+
+// 3C. RESOURCES POPUP CLASS
+class ResourcesMegaMenuContent extends StatelessWidget {
+  final VoidCallback onItemTap;
+
+  const ResourcesMegaMenuContent({super.key, required this.onItemTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("24/7 SUPPORT"),
+              MegaMenuRichItem(
+                title: "Help Center",
+                description:
+                "In-depth guides and videos about the platform, our services, and how to get started.",
+                onTap: onItemTap,
+              ),
+              const SizedBox(height: 18),
+              MegaMenuRichItem(
+                title: "Forum",
+                description:
+                "An online community for users to discuss best practices and seek advice.",
+                onTap: onItemTap,
+              ),
+              const SizedBox(height: 18),
+              MegaMenuRichItem(
+                title: "Webinars",
+                description:
+                "Free online sessions where you will learn the basics and refine your skills.",
+                onTap: onItemTap,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 26),
+              MegaMenuRichItem(
+                title: "Blog",
+                description:
+                "Stories and solutions for the modern entrepreneur and developer.",
+                onTap: onItemTap,
+              ),
+              const SizedBox(height: 18),
+              MegaMenuRichItem(
+                title: "Hire an Expert",
+                description:
+                "Let us do the work of finding you the perfect expert to help you stand out online.",
+                onTap: onItemTap,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const MegaMenuHeading("GET INSPIRED"),
+              InkWell(
+                onTap: onItemTap,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF181818),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade800),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.collections_bookmark_outlined,
+                          color: Colors.white, size: 32),
+                      SizedBox(height: 14),
+                      Text(
+                        "Made with Flutter & Cloud",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        "A collection of inspirational applications and websites built for real businesses.",
+                        style: TextStyle(
+                            color: Colors.white70, fontSize: 12.5, height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// 3D. SHARED HELPER WIDGETS FOR MEGA MENU
+class MegaMenuHeading extends StatelessWidget {
+  final String title;
+  const MegaMenuHeading(this.title, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.grey.shade500,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+class MegaMenuLink extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+  const MegaMenuLink(this.text, {super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: onTap,
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MegaMenuCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const MegaMenuCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF181818),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade800),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 26),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MegaMenuRichItem extends StatelessWidget {
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const MegaMenuRichItem({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 12.5,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeWelcomeSection extends StatelessWidget {
+  final VoidCallback onBackToPortfolio;
+
+  const HomeWelcomeSection({super.key, required this.onBackToPortfolio});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(minHeight: 450),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.home_work_rounded,
+            size: 80,
+            color: Color(0xFF000080),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "Welcome to the New Home Page",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF000080),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "Explore our latest digital solutions, custom software services, and enterprise applications.",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+          const SizedBox(height: 30),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF000080),
+              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            onPressed: onBackToPortfolio,
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
+            label: const Text(
+              "Back to Portfolio",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class LiveChatModule extends StatefulWidget {
+  final double screenWidth;
+  final bool isMobile;
+
+  const LiveChatModule({
+    super.key,
+    required this.screenWidth,
+    required this.isMobile,
+  });
+
+  @override
+  State<LiveChatModule> createState() => _LiveChatModuleState();
+}
+
+class _LiveChatModuleState extends State<LiveChatModule> {
+  bool _isChatOpen = false;
+  final TextEditingController _chatController = TextEditingController();
+  final ScrollController _chatScrollController = ScrollController();
+
+  final _messages = [
+    {
+      "text": "Hello! I am Ariful's Assistant. How can I help you today?",
+      "isUser": false,
+      "time": "Just now",
+    }
+  ];
+
+  String _generateSmartReply(String userText) {
+    final String msg = userText.toLowerCase();
+
+    if (msg.contains("hi") || msg.contains("hello") || msg.contains("hey")) {
+      return "Hello! Welcome to Ariful's Portfolio. Are you looking for a Mobile App, Website, or Custom Software?";
+    } else if (msg.contains("price") ||
+        msg.contains("cost") ||
+        msg.contains("charge") ||
+        msg.contains("budget")) {
+      return "Project pricing depends on features and complexity. Please share your requirements or contact via WhatsApp/Email for a quick quote!";
+    } else if (msg.contains("app") ||
+        msg.contains("flutter") ||
+        msg.contains("android") ||
+        msg.contains("ios")) {
+      return "I specialize in cross-platform Flutter apps for Android, iOS, and Web with Firebase & REST API integration.";
+    } else if (msg.contains("web") || msg.contains("website")) {
+      return "I build fast, responsive web applications and business portals with custom admin panels.";
+    } else if (msg.contains("contact") ||
+        msg.contains("phone") ||
+        msg.contains("whatsapp") ||
+        msg.contains("email")) {
+      return "You can reach me directly from the 'Contact Now' button on the main page via WhatsApp, Email, or LinkedIn.";
+    } else if (msg.contains("help") ||
+        msg.contains("support") ||
+        msg.contains("service")) {
+      return "Sure! I can help you with Full-Stack Development, Cross-Platform Apps, Logistics Automation, and Admin Dashboards.";
+    } else if (msg.contains("thank")) {
+      return "You're very welcome! Let me know if you have any other questions.";
+    } else {
+      return "Got it! I have noted your message: \"$userText\". Ariful will review this and reply shortly.";
+    }
+  }
+
+  void _sendMessage() {
+    final String text = _chatController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _messages.add({
+        "text": text,
+        "isUser": true,
+        "time": "Now",
+      });
+      _chatController.clear();
+    });
+
+    _scrollToBottom();
+
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      final String reply = _generateSmartReply(text);
+      setState(() {
+        _messages.add({
+          "text": reply,
+          "isUser": false,
+          "time": "Now",
+        });
+      });
+      _scrollToBottom();
+    });
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_chatScrollController.hasClients) {
+        _chatScrollController.animateTo(
+          _chatScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    _chatScrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: 25,
+      bottom: 25,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_isChatOpen)
+            Container(
+              width: widget.isMobile ? widget.screenWidth * 0.88 : 350,
+              height: 430,
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.22),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF000080),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(17),
+                        topRight: Radius.circular(17),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Stack(
+                          children: [
+                            const CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.support_agent, color: Color(0xFF000080)),
+                            ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: Colors.greenAccent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF000080),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Live Support Chat",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                "Online - Replies within 1 min",
+                                style: TextStyle(color: Colors.white70, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => setState(() => _isChatOpen = false),
+                          icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xFFF6F8FC),
+                      child: ListView.builder(
+                        controller: _chatScrollController,
+                        padding: const EdgeInsets.all(14),
+                        itemCount: _messages.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final Map<String, dynamic> msg = _messages[index];
+                          final bool isUser = msg["isUser"] == true;
+                          final String messageText = msg["text"]?.toString() ?? "";
+
+                          return Align(
+                            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              constraints: const BoxConstraints(maxWidth: 240),
+                              decoration: BoxDecoration(
+                                color: isUser ? const Color(0xFF000080) : Colors.white,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: const Radius.circular(14),
+                                  topRight: const Radius.circular(14),
+                                  bottomLeft: Radius.circular(isUser ? 14 : 2),
+                                  bottomRight: Radius.circular(isUser ? 2 : 14),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                messageText,
+                                style: TextStyle(
+                                  color: isUser ? Colors.white : Colors.black87,
+                                  fontSize: 13.5,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(17),
+                        bottomRight: Radius.circular(17),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _chatController,
+                            onSubmitted: (_) => _sendMessage(),
+                            decoration: const InputDecoration(
+                              hintText: "Write a message...",
+                              hintStyle: TextStyle(fontSize: 13.5, color: Colors.grey),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _sendMessage,
+                          icon: const Icon(Icons.send_rounded, color: Color(0xFF000080)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => setState(() => _isChatOpen = !_isChatOpen),
+              borderRadius: BorderRadius.circular(30),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF000080),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: Colors.white24, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.35),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isChatOpen
+                          ? Icons.keyboard_arrow_down_rounded
+                          : Icons.chat_bubble_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      _isChatOpen ? "Close Chat" : "Live Chat",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeDarkFooterSection extends StatelessWidget {
+  final bool isMobile;
+
+  const HomeDarkFooterSection({super.key, required this.isMobile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Colors.black,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 24 : 60,
+        vertical: 60,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          isMobile
+              ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildBrandColumn(),
+              const SizedBox(height: 40),
+              _buildFooterColumnsWrap(),
+            ],
+          )
+              : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: _buildBrandColumn()),
+              const SizedBox(width: 40),
+              Expanded(
+                flex: 7,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _col1Products()),
+                    Expanded(child: _col2SolutionsAndResources()),
+                    Expanded(child: _col3FromAndSupport()),
+                    Expanded(child: _col4CompanyAndFollow()),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 50),
+          Divider(color: Colors.grey.shade800, thickness: 1),
+          const SizedBox(height: 25),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 16,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.language, color: Colors.white, size: 18),
+                  SizedBox(width: 6),
+                  Text("English", style: TextStyle(color: Colors.white, fontSize: 13)),
+                  Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
+                  SizedBox(width: 16),
+                  Text("\$ SGD", style: TextStyle(color: Colors.white, fontSize: 13)),
+                  Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
+                ],
+              ),
+              Wrap(
+                spacing: 20,
+                runSpacing: 8,
+                children: [
+                  _footerBottomLink("Terms"),
+                  _footerBottomLink("Privacy"),
+                  _footerBottomLink("Security Measures"),
+                  _footerBottomLink("Sitemap"),
+                  Text(
+                    "© 2003–2026 Ariful's Portfolio, Inc.",
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBrandColumn() {
+    return SizedBox(
+      height: 360,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.all_inclusive, color: Colors.white, size: 32),
+              SizedBox(height: 18),
+              Text(
+                "A website makes it real",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white54),
+                ),
+                child: const Icon(Icons.verified_outlined, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  "Verified Full-Stack &\nCross-Platform Developer.",
+                  style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterColumnsWrap() {
+    return Wrap(
+      spacing: 30,
+      runSpacing: 30,
+      children: [
+        SizedBox(width: 160, child: _col1Products()),
+        SizedBox(width: 160, child: _col2SolutionsAndResources()),
+        SizedBox(width: 160, child: _col3FromAndSupport()),
+        SizedBox(width: 160, child: _col4CompanyAndFollow()),
+      ],
+    );
+  }
+
+  Widget _col1Products() {
+    return _footerSection("Products", const [
+      "Website Templates",
+      "Websites",
+      "Domains",
+      "AI Website Builder",
+      "Design Intelligence",
+      "Online Stores",
+      "Services",
+      "Invoicing",
+      "Scheduling",
+      "Content & Memberships",
+      "Donations",
+      "Payments",
+      "Marketing Tools",
+      "Professional Email",
+      "Feature List",
+      "Product Updates",
+      "Pricing",
+    ]);
+  }
+
+  Widget _col2SolutionsAndResources() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _footerSection("Solutions", const [
+          "Creative Services",
+          "Professional Services",
+          "Education & Training",
+          "Beauty",
+          "Sports & Fitness",
+          "Health & Wellness",
+          "Home Services",
+          "Events & Experiences",
+          "Charities & Nonprofits",
+          "Personal",
+        ]),
+        const SizedBox(height: 28),
+        _footerSection("Resources", const [
+          "Customer Examples",
+          "Portfolio Collection",
+          "Extensions",
+          "Tech Blog",
+          "Free Tools",
+          "Business Name Generator",
+          "Logo Maker",
+        ]),
+      ],
+    );
+  }
+
+  Widget _col3FromAndSupport() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _footerSection("From Platform", const [
+          "Acuity Scheduling",
+          "Bio Sites",
+          "Unfold",
+          "Email Campaigns",
+          "Apps for Pros",
+        ]),
+        const SizedBox(height: 28),
+        _footerSection("Programs", const [
+          "Circle",
+          "Affiliates",
+          "Students",
+        ]),
+        const SizedBox(height: 28),
+        _footerSection("Support", const [
+          "Help Center",
+          "Forum",
+          "Webinars",
+          "Hire an Expert",
+          "Developer Blog",
+          "Developer Platform",
+          "System Status",
+        ]),
+      ],
+    );
+  }
+
+  Widget _col4CompanyAndFollow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _footerSection("Company", const [
+          "About",
+          "Careers",
+          "Our Brand",
+          "Accessibility",
+          "Newsroom",
+          "Press & Media",
+          "Contact Us",
+        ]),
+        const SizedBox(height: 28),
+        _footerSection("Follow", const [
+          "Instagram",
+          "YouTube",
+          "LinkedIn",
+          "Facebook",
+          "X",
+        ]),
+      ],
+    );
+  }
+
+  Widget _footerSection(String heading, Iterable<String> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          heading,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 14),
+        ...items.map(
+              (String item) => Padding(
+            padding: const EdgeInsets.only(bottom: 9),
+            child: InkWell(
+              onTap: () {},
+              child: Text(
+                item,
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _footerBottomLink(String text) {
+    return InkWell(
+      onTap: () {},
+      child: Text(
+        text,
+        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
       ),
     );
   }
