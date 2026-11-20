@@ -79,6 +79,7 @@ void main() async {
     debugPrint("Firebase initialization error: $e");
   }
   runApp(MaterialApp(
+    title: 'Md Ariful Islam Portfolio', // 👈 এই লাইনটি যোগ করলেই লোড হওয়ার পরেও ট্যাবে নাম থাকবে
     debugShowCheckedModeBanner: false,
     home: const PortfolioScreen(),
   ));
@@ -3004,6 +3005,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
 
   @override
+  @override
   Widget build(BuildContext context) {
     if (_isCheckingInternet) {
       return _buildCheckingInternetScreen();
@@ -3015,245 +3017,247 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
     final double screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return SelectionArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
 
-      // STABLE Menu Bar
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 40,
-            vertical: 20,
-          ),
-          color: const Color(0xFF000080),
-          child: Row(
-            children: [
-              Text(
-                profileName.toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
+        // STABLE Menu Bar
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 40,
+              vertical: 20,
+            ),
+            color: const Color(0xFF000080),
+            child: Row(
+              children: [
+                Text(
+                  profileName.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
                 ),
-              ),
-              const Spacer(),
+                const Spacer(),
 
-              ...[
-                homeMenuTitle,
-                resumeMenuTitle,
-                projectMenuTitle,
-                experienceMenuTitle,
-                expertiseMenuTitle,
-              ].map(
-                    (e) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.15),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                ...[
+                  homeMenuTitle,
+                  resumeMenuTitle,
+                  projectMenuTitle,
+                  experienceMenuTitle,
+                  expertiseMenuTitle,
+                ].map(
+                      (e) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.15),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: () {
-                      if (e == homeMenuTitle) {
-                        // Home বাটনে ক্লিক করলে নতুন পেজ ওপেন হবে
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomeNewPage(), // আপনার নতুন পেজের নাম
+                      onPressed: () {
+                        if (e == homeMenuTitle) {
+                          // Home বাটনে ক্লিক করলে নতুন পেজ ওপেন হবে
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomeNewPage(), // আপনার নতুন পেজের নাম
+                            ),
+                          );
+                          return;
+                        }
+                        if (e == resumeMenuTitle) {
+                          _showCvDialog(context);
+                          return;
+                        }
+                        if (e == experienceMenuTitle) {
+                          _showExperienceDisplayDialog(context);
+                          return;
+                        }
+                        if (e == projectMenuTitle) {
+                          _showProjectDisplayDialog(context);
+                          return;
+                        }
+                        if (e == expertiseMenuTitle) {
+                          _showExpertiseDisplayDialog(context);
+                        }
+                      },
+                      child: SelectionContainer.disabled(
+                        child: Text(
+                          e,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
                           ),
-                        );
-                        return;
-                      }
-                      if (e == resumeMenuTitle) {
-                        _showCvDialog(context);
-                        return;
-                      }
-                      if (e == experienceMenuTitle) {
-                        _showExperienceDisplayDialog(context);
-                        return;
-                      }
-                      if (e == projectMenuTitle) {
-                        _showProjectDisplayDialog(context);
-                        return;
-                      }
-                      if (e == expertiseMenuTitle) {
-                        _showExpertiseDisplayDialog(context);
-                      }
-                    },
-                    child: Text(
-                      e,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              PopupMenuButton<String>(
-                icon: const Icon(
-                  Icons.menu,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                offset: const Offset(0, 50),
-                onSelected: (value) {
-                  if (value == 'Personal') {
-                    _showPasswordDialog(context);
-                  }
-                },
-                itemBuilder: (BuildContext context) =>
-                <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'Personal',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.admin_panel_settings,
-                          color: Color(0xFF000080),
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Administrator',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                PopupMenuButton<String>(
+                  icon: const Icon(
+                    Icons.menu,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                  offset: const Offset(0, 50),
+                  onSelected: (value) {
+                    if (value == 'Personal') {
+                      _showPasswordDialog(context);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'Personal',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.admin_panel_settings,
                             color: Color(0xFF000080),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const PopupMenuItem<String>(
-                    value: 'Settings',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.settings,
-                          color: Color(0xFF000080),
-                        ),
-                        SizedBox(width: 10),
-                        Text('Settings'),
-                      ],
-                    ),
-                  ),
-
-                  const PopupMenuItem<String>(
-                    value: 'HelpDesk',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.help_outline,
-                          color: Color(0xFF000080),
-                        ),
-                        SizedBox(width: 10),
-                        Text('Help Desk'),
-                      ],
-                    ),
-                  ),
-
-                  const PopupMenuItem<String>(
-                    value: 'Support',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.support_agent,
-                          color: Color(0xFF000080),
-                        ),
-                        SizedBox(width: 10),
-                        Text('Support'),
-                      ],
-                    ),
-                  ),
-
-                  const PopupMenuItem<String>(
-                    value: 'ContactDeveloper',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.code,
-                          color: Color(0xFF000080),
-                        ),
-                        SizedBox(width: 10),
-                        Text('Contact Developer'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      body: InteractiveViewer(
-        transformationController: _homeViewController,
-        boundaryMargin: const EdgeInsets.all(0),
-        minScale: 0.5,
-        maxScale: 1.0,
-        panEnabled: true,
-        constrained: false,
-        child: SizedBox(
-          width: screenWidth < 1200 ? 1200 : screenWidth,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 60,
-              vertical: 40,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildHeroContent(context),
-                    ),
-                    const SizedBox(width: 40),
-                    Expanded(
-                      child: Container(
-                        height: 350,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(20),
-                          image: (dashboardImageUrl != null &&
-                              dashboardImageUrl!.trim().isNotEmpty)
-                              ? DecorationImage(
-                            image: NetworkImage(
-                              dashboardImageUrl!.trim(),
+                          SizedBox(width: 10),
+                          Text(
+                            'Administrator',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF000080),
                             ),
-                            fit: BoxFit.cover,
-                          )
-                              : null,
-                        ),
-                        child: (dashboardImageUrl == null ||
-                            dashboardImageUrl!.trim().isEmpty)
-                            ? const Center(
-                          child: Icon(
-                            Icons.image,
-                            size: 60,
-                            color: Colors.grey,
                           ),
-                        )
-                            : null,
+                        ],
+                      ),
+                    ),
+
+                    const PopupMenuItem<String>(
+                      value: 'Settings',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.settings,
+                            color: Color(0xFF000080),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Settings'),
+                        ],
+                      ),
+                    ),
+
+                    const PopupMenuItem<String>(
+                      value: 'HelpDesk',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.help_outline,
+                            color: Color(0xFF000080),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Help Desk'),
+                        ],
+                      ),
+                    ),
+
+                    const PopupMenuItem<String>(
+                      value: 'Support',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.support_agent,
+                            color: Color(0xFF000080),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Support'),
+                        ],
+                      ),
+                    ),
+
+                    const PopupMenuItem<String>(
+                      value: 'ContactDeveloper',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.code,
+                            color: Color(0xFF000080),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Contact Developer'),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 80),
-                _buildFooterSection(),
               ],
+            ),
+          ),
+        ),
+
+        body: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: screenWidth < 1200 ? 1200 : screenWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 60,
+                  vertical: 40,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _buildHeroContent(context),
+                        ),
+                        const SizedBox(width: 40),
+                        Expanded(
+                          child: Container(
+                            height: 350,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(20),
+                              image: (dashboardImageUrl != null &&
+                                  dashboardImageUrl!.trim().isNotEmpty)
+                                  ? DecorationImage(
+                                image: NetworkImage(
+                                  dashboardImageUrl!.trim(),
+                                ),
+                                fit: BoxFit.cover,
+                              )
+                                  : null,
+                            ),
+                            child: (dashboardImageUrl == null ||
+                                dashboardImageUrl!.trim().isEmpty)
+                                ? const Center(
+                              child: Icon(
+                                Icons.image,
+                                size: 60,
+                                color: Colors.grey,
+                              ),
+                            )
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 80),
+                    _buildFooterSection(),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -3936,7 +3940,9 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           onPressed: () {
             _showContactDialog(context);
           },
-          child: const Text("Contact Now", style: TextStyle(color: Colors.white))),
+          child: const SelectionContainer.disabled(
+            child: Text("Contact Now", style: TextStyle(color: Colors.white)),
+          )),
     ],
   );
 
@@ -4075,6 +4081,7 @@ class HomeNewPage extends StatefulWidget {
 }
 
 class _HomeNewPageState extends State<HomeNewPage> {
+  final ScrollController _pageScrollController = ScrollController();
   String? _activeMegaMenu;
   Timer? _menuCloseTimer;
 
@@ -4110,6 +4117,7 @@ class _HomeNewPageState extends State<HomeNewPage> {
   @override
   void dispose() {
     _menuCloseTimer?.cancel();
+    _pageScrollController.dispose();
     super.dispose();
   }
 
@@ -4138,13 +4146,18 @@ class _HomeNewPageState extends State<HomeNewPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            child: Column(
-              children: [
-                HomeWelcomeSection(
-                  onBackToPortfolio: () => Navigator.pop(context),
-                ),
-                HomeDarkFooterSection(isMobile: isMobile),
-              ],
+            key: const PageStorageKey('home_new_page_scroll'), // 👈 এটি স্ক্রল পজিশন লক রাখবে
+            controller: _pageScrollController,
+            primary: false,
+            child: SelectionArea( // 👈 SelectionArea ভেতরে থাকবে, বাইরে নয়
+              child: Column(
+                children: [
+                  HomeWelcomeSection(
+                    onBackToPortfolio: () => Navigator.pop(context),
+                  ),
+                  HomeDarkFooterSection(isMobile: isMobile),
+                ],
+              ),
             ),
           ),
           if (_activeMegaMenu != null && !isMobile)
@@ -4164,6 +4177,7 @@ class _HomeNewPageState extends State<HomeNewPage> {
     );
   }
 }
+
 class HomeTopMenuBar extends StatelessWidget {
   final bool isMobile;
   final String? activeMegaMenu;
@@ -4223,11 +4237,15 @@ class HomeTopMenuBar extends StatelessWidget {
                 onSelected: (String value) {
                   if (value == "Home") onHomeTap();
                 },
-                itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[
+                itemBuilder: (BuildContext context) =>
+                const <PopupMenuEntry<String>>[
                   PopupMenuItem<String>(value: "Home", child: Text("Home")),
-                  PopupMenuItem<String>(value: "Products", child: Text("Products")),
-                  PopupMenuItem<String>(value: "Solutions", child: Text("Solutions")),
-                  PopupMenuItem<String>(value: "Resources", child: Text("Resources")),
+                  PopupMenuItem<String>(
+                      value: "Products", child: Text("Products")),
+                  PopupMenuItem<String>(
+                      value: "Solutions", child: Text("Solutions")),
+                  PopupMenuItem<String>(
+                      value: "Resources", child: Text("Resources")),
                 ],
               ),
           ],
@@ -4245,9 +4263,11 @@ class HomeTopMenuBar extends StatelessWidget {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
-        child: Text(
-          title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        child: SelectionContainer.disabled(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     );
@@ -4266,20 +4286,25 @@ class HomeTopMenuBar extends StatelessWidget {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                isActive ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                color: Colors.white,
-                size: 20,
-              ),
-            ],
+          child: SelectionContainer.disabled(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  isActive
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -4850,16 +4875,16 @@ class HomeWelcomeSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 450),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 50),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
             Icons.home_work_rounded,
-            size: 80,
+            size: 70,
             color: Color(0xFF000080),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           const Text(
             "Welcome to the New Home Page",
             textAlign: TextAlign.center,
@@ -4869,13 +4894,13 @@ class HomeWelcomeSection extends StatelessWidget {
               color: Color(0xFF000080),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           const Text(
             "Explore our latest digital solutions, custom software services, and enterprise applications.",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.black54),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 25),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF000080),
@@ -4890,6 +4915,140 @@ class HomeWelcomeSection extends StatelessWidget {
               "Back to Portfolio",
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
+          ),
+
+          const SizedBox(height: 40),
+
+          // 👇 অ্যাডমিন প্যানেল থেকে অ্যাড করা Photo, Video এবং Text এখানে দেখাবে
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('new_home_blocks')
+                .orderBy('createdAt', descending: false)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              final blocks = snapshot.data!.docs;
+
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: Column(
+                  children: blocks.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final String type = data['type'] ?? 'text';
+                    final String title = data['title'] ?? '';
+                    final String content = data['content'] ?? '';
+
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 24),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (title.isNotEmpty) ...[
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF000080),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          if (type == 'text')
+                            Text(
+                              content,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                height: 1.6,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          if (type == 'photo')
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                content,
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          if (type == 'video')
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF4F6FA),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.play_circle_fill,
+                                      size: 48, color: Color(0xFF000080)),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          title.isNotEmpty ? title : "Uploaded Video",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold, fontSize: 16),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          "Click button to watch video",
+                                          style: TextStyle(color: Colors.black54, fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF000080),
+                                    ),
+                                    onPressed: () {
+                                      if (kIsWeb) {
+                                        html.window.open(content, '_blank');
+                                      }
+                                    },
+                                    icon: const Icon(Icons.open_in_new,
+                                        color: Colors.white, size: 18),
+                                    label: const Text("Watch Video",
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -5843,6 +6002,258 @@ class PersonalDetailsPage extends StatelessWidget {
       },
     );
   }
+  void _openNewHomeContentManager(BuildContext context) {
+    String selectedType = 'text'; // 'text', 'photo', 'video'
+    final TextEditingController titleController = TextEditingController();
+    final TextEditingController textController = TextEditingController();
+    Uint8List? selectedFileBytes;
+    String selectedFileName = '';
+    bool isUploading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text(
+                "Manage New Home Page Content",
+                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF000080)),
+              ),
+              content: SizedBox(
+                width: 550,
+                height: 550,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ১. টাইপ নির্বাচন (Text / Photo / Video)
+                    DropdownButtonFormField<String>(
+                      value: selectedType,
+                      decoration: const InputDecoration(
+                        labelText: "Select Content Type",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'text', child: Text("Text")),
+                        DropdownMenuItem(value: 'photo', child: Text("Photo (Upload Image)")),
+                        DropdownMenuItem(value: 'video', child: Text("Video (Upload MP4/Video)")),
+                      ],
+                      onChanged: (val) {
+                        setDialogState(() {
+                          selectedType = val!;
+                          selectedFileBytes = null;
+                          selectedFileName = '';
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ২. টাইটেল বা ক্যাপশন
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: "Heading / Title (Optional)",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ৩. কন্টেন্ট ইনপুট (Text হলে বক্স, Photo/Video হলে ফাইল পিকার)
+                    if (selectedType == 'text')
+                      TextField(
+                        controller: textController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: "Write your description/text here",
+                          border: OutlineInputBorder(),
+                        ),
+                      )
+                    else
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                type: selectedType == 'photo' ? FileType.image : FileType.video,
+                                withData: true,
+                              );
+                              if (result != null && result.files.single.bytes != null) {
+                                setDialogState(() {
+                                  selectedFileBytes = result.files.single.bytes;
+                                  selectedFileName = result.files.single.name;
+                                });
+                              }
+                            },
+                            icon: Icon(selectedType == 'photo' ? Icons.image : Icons.video_library),
+                            label: Text("Choose ${selectedType == 'photo' ? 'Photo' : 'Video'}"),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              selectedFileName.isNotEmpty ? selectedFileName : "No file selected",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 14),
+
+                    // ৪. Add বাটন (Cloudinary ও Firestore-এ সেভ করবে)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 45,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF000080)),
+                        onPressed: isUploading
+                            ? null
+                            : () async {
+                          if (selectedType == 'text' && textController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Please write some text!")),
+                            );
+                            return;
+                          }
+                          if (selectedType != 'text' && selectedFileBytes == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Please select a file first!")),
+                            );
+                            return;
+                          }
+
+                          setDialogState(() => isUploading = true);
+
+                          String finalContent = textController.text.trim();
+                          if (selectedType != 'text' && selectedFileBytes != null) {
+                            finalContent = await uploadToCloudinary(
+                              selectedFileBytes!,
+                              selectedFileName,
+                              folder: "portfolio/new_home",
+                            );
+                          }
+
+                          if (finalContent.isNotEmpty) {
+                            await FirebaseFirestore.instance
+                                .collection('new_home_blocks')
+                                .add({
+                              'type': selectedType,
+                              'title': titleController.text.trim(),
+                              'content': finalContent,
+                              'createdAt': FieldValue.serverTimestamp(),
+                            });
+
+                            titleController.clear();
+                            textController.clear();
+                            setDialogState(() {
+                              selectedFileBytes = null;
+                              selectedFileName = '';
+                              isUploading = false;
+                            });
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Added successfully!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } else {
+                            setDialogState(() => isUploading = false);
+                          }
+                        },
+                        icon: isUploading
+                            ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                            : const Icon(Icons.cloud_upload, color: Colors.white),
+                        label: Text(
+                          isUploading ? "Uploading..." : "Add to New Home Page",
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+
+                    const Divider(height: 25),
+                    const Text(
+                      "Added Items (Click Delete icon to Remove):",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // ৫. আগে থেকে যোগ করা আইটেমগুলোর লিস্ট ও Remove বাটন
+                    Expanded(
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('new_home_blocks')
+                            .orderBy('createdAt', descending: false)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          final docs = snapshot.data!.docs;
+                          if (docs.isEmpty) {
+                            return const Center(child: Text("No items added yet."));
+                          }
+                          return ListView.builder(
+                            itemCount: docs.length,
+                            itemBuilder: (context, index) {
+                              final data = docs[index].data() as Map<String, dynamic>;
+                              final String type = data['type'] ?? 'text';
+                              final String title = data['title'] ?? '';
+                              final String content = data['content'] ?? '';
+
+                              return Card(
+                                child: ListTile(
+                                  leading: Icon(
+                                    type == 'video'
+                                        ? Icons.videocam
+                                        : type == 'photo'
+                                        ? Icons.image
+                                        : Icons.text_fields,
+                                    color: const Color(0xFF000080),
+                                  ),
+                                  title: Text(
+                                    title.isNotEmpty ? title : content,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text("Type: ${type.toUpperCase()}"),
+                                  trailing: IconButton(
+                                    tooltip: "Remove",
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () async {
+                                      await docs[index].reference.delete();
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isUploading ? null : () => Navigator.pop(dialogContext),
+                  child: const Text("Close"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<void> _pickDashboardImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
@@ -6380,6 +6791,14 @@ class PersonalDetailsPage extends StatelessWidget {
         },
       ),
       _premiumRow(context, "14", "Additional", "Add Description", () {}),
+      // 👇 এই নতুন লাইনটি যোগ করুন
+      _premiumRow(
+        context,
+        "20",
+        "New Home Page (Photo, Video & Text)",
+        "Manage Media & Text",
+            () => _openNewHomeContentManager(context),
+      ),
     ]);
   }
   Widget _adminPasswordCard(BuildContext context) {
